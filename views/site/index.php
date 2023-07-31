@@ -1,53 +1,128 @@
 <?php
 
-/** @var yii\web\View $this */
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\widgets\LinkPager;
 
-$this->title = 'My Yii Application';
 ?>
-<div class="site-index">
+<ul class="nav nav-tabs p-b">
+    <li class="active"><a href="#">All orders</a></li>
+    <li><a href="#">Pending</a></li>
+    <li><a href="#">In progress</a></li>
+    <li><a href="#">Completed</a></li>
+    <li><a href="#">Canceled</a></li>
+    <li><a href="#">Error</a></li>
+    <li class="pull-right custom-search">
+        <form class="form-inline" action="<?php echo Url::toRoute('/') ?>" method="get">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" value="<?= Html::encode($search) ?>" placeholder="Search orders">
+                <span class="input-group-btn search-select-wrap">
 
-    <div class="jumbotron text-center bg-transparent mt-5 mb-5">
-        <h1 class="display-4">Congratulations!</h1>
+            <select class="form-control search-select" name="searchType">
+              <option <?= Html::encode(($searchType == 1 ? 'selected': '')) ?> value="1">Order ID</option>
+              <option <?= Html::encode(($searchType == 2 ? 'selected': '')) ?> value="2">Link</option>
+              <option <?= Html::encode(($searchType == 3 ? 'selected': '')) ?> value="3">Username</option>
+            </select>
+            <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+            </span>
+            </div>
+        </form>
+    </li>
+</ul>
+<table class="table order-table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Link</th>
+        <th>Quantity</th>
+        <th class="dropdown-th">
+            <div class="dropdown">
+                <button class="btn btn-th btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    Service
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                    <li class="active"><a href="">All (894931)</a></li>
+                    <li><a href=""><span class="label-id">214</span> Real Views</a></li>
+                    <li><a href=""><span class="label-id">215</span> Page Likes</a></li>
+                    <li><a href=""><span class="label-id">10</span> Page Likes</a></li>
+                    <li><a href=""><span class="label-id">217</span> Page Likes</a></li>
+                    <li><a href=""><span class="label-id">221</span> Followers</a></li>
+                    <li><a href=""><span class="label-id">224</span> Groups Join</a></li>
+                    <li><a href=""><span class="label-id">230</span> Website Likes</a></li>
+                </ul>
+            </div>
+        </th>
+        <th>Status</th>
+        <th class="dropdown-th">
+            <div class="dropdown">
+                <button class="btn btn-th btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    Mode
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                    <li class="active"><a href="">All</a></li>
+                    <li><a href="">Manual</a></li>
+                    <li><a href="">Auto</a></li>
+                </ul>
+            </div>
+        </th>
+        <th>Created</th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($orders as $order): ?>
+        <tr>
+            <td><?= Html::encode($order->id) ?></td>
+            <td><?= Html::encode($order->users[0]['first_name']) ?></td>
+            <td class="link"><?= Html::encode($order->link) ?></td>
+            <td><?= Html::encode($order->quantity) ?></td>
+            <td class="service">
+                <span class="label-id">213</span>Likes
+            </td>
+            <td><?= Html::encode($order->getStatusToString()) ?></td>
+            <td><?= Html::encode($order->getModeToString()) ?></td>
+            <td>
+                <span class="nowrap">
+                    <?= Html::encode($order->getDateObject()->getFirstDate()) ?>
+                </span>
+                <span class="nowrap">
+                    <?= Html::encode($order->getDateObject()->getSecondDate()) ?>
+                </span>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+<div class="row">
+    <div class="col-sm-8">
+        <nav>
+            <?php
+                echo LinkPager::widget([
+                    'pagination' => $pagination,
+                ]);
+            ?>
+<!--            <ul class="pagination">-->
+<!--                <li class="disabled"><a href="" aria-label="Previous">&laquo;</a></li>-->
+<!--                <li class="active"><a href="">1</a></li>-->
+<!--                <li><a href="">2</a></li>-->
+<!--                <li><a href="">3</a></li>-->
+<!--                <li><a href="">4</a></li>-->
+<!--                <li><a href="">5</a></li>-->
+<!--                <li><a href="">6</a></li>-->
+<!--                <li><a href="">7</a></li>-->
+<!--                <li><a href="">8</a></li>-->
+<!--                <li><a href="">9</a></li>-->
+<!--                <li><a href="">10</a></li>-->
+<!--                <li><a href="" aria-label="Next">&raquo;</a></li>-->
+<!--            </ul>-->
+        </nav>
 
-        <p class="lead">You have successfully created your Yii-powered application.</p>
+    </div>
+    <div class="col-sm-4 pagination-counters">
 
-        <p><a class="btn btn-lg btn-success" href="https://www.yiiframework.com">Get started with Yii</a></p>
+        <?php echo $pagination->page + 1 ?> to <?php echo $pageSize ?> of <?php echo $totalPages?>
     </div>
 
-    <div class="body-content">
-
-        <div class="row">
-            <div class="col-lg-4 mb-3">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
-            </div>
-            <div class="col-lg-4 mb-3">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
-        </div>
-
-    </div>
 </div>

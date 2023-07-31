@@ -2,127 +2,87 @@
 
 namespace app\controllers;
 
-use Yii;
-use yii\filters\AccessControl;
+use app\models\Orders;
+use yii\data\Pagination;
+use yii\helpers\Url;
 use yii\web\Controller;
-use yii\web\Response;
-use yii\filters\VerbFilter;
-use app\models\LoginForm;
-use app\models\ContactForm;
+use yii\web\NotFoundHttpException;
 
 class SiteController extends Controller
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            'access' => [
-                'class' => AccessControl::class,
-                'only' => ['logout'],
-                'rules' => [
-                    [
-                        'actions' => ['logout'],
-                        'allow' => true,
-                        'roles' => ['@'],
-                    ],
-                ],
-            ],
-            'verbs' => [
-                'class' => VerbFilter::class,
-                'actions' => [
-                    'logout' => ['post'],
-                ],
-            ],
-        ];
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function actions()
-    {
-        return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
-            'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-            ],
-        ];
-    }
+    const ID_TYPE = 1;
+    const LINK_TYPE = 2;
+    const USERNAME_TYPE = 3;
+
+    const EQ_OPERATOR = '=';
+    const LIKE_OPERATOR = 'like';
+
+    const AVAILABLE_TYPES_FIELDS_AND_OPERATOR = [
+        self::ID_TYPE => ['id', self::EQ_OPERATOR],
+        self::LINK_TYPE => ['link', self::LIKE_OPERATOR],
+        self::USERNAME_TYPE => ['user_name', 'like'],
+    ];
+
 
     /**
      * Displays homepage.
      *
      * @return string
+     * @throws NotFoundHttpException
      */
-    public function actionIndex()
+    public function actionIndex(
+        string $search = null,
+        int $searchType = null,
+        int $mode = null
+    ): string
     {
-        return $this->render('index');
-    }
-
-    /**
-     * Login action.
-     *
-     * @return Response|string
-     */
-    public function actionLogin()
-    {
-        if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
+        $query = Orders::find();
+        if($searchType !== null) {
+            if($this->checkConstEnum($searchType, self::AVAILABLE_TYPES_FIELDS_AND_OPERATOR)) {
+                throw new NotFoundHttpException();
+            }
+            if($search !== null) {
+                $arr = self::AVAILABLE_TYPES_FIELDS_AND_OPERATOR[$searchType];
+                $field = $arr[0];
+                $operator = $arr[1];
+                $query->where("{$field} {$operator} :field", ['field' => $operator === self::LIKE_OPERATOR ? "%{$search}%" : $search]);
+            }
         }
 
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+        if($mode !== null) {
+            if($this->checkConstEnum($mode, [1, 2])) {
+                throw new NotFoundHttpException();
+            }
+            $query->where('mode', $mode);
         }
 
-        $model->password = '';
-        return $this->render('login', [
-            'model' => $model,
+        $pageSize = 100;
+
+        $pagination = new Pagination([
+            'defaultPageSize' => $pageSize,
+            'totalCount' => $query->count(),
         ]);
+
+        $orders = $query->orderBy('id')
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->all();
+
+
+        $total = $pagination->totalCount;
+
+        $totalPages = (int) (($total + $pageSize - 1) / $pageSize);
+
+        return $this->render('index', [
+            'orders' => $orders,
+            'pagination' => $pagination,
+        ] + compact('search', 'searchType', 'pageSize', 'totalPages'));
     }
 
-    /**
-     * Logout action.
-     *
-     * @return Response
-     */
-    public function actionLogout()
+    private function checkConstEnum($searchType, array $array): bool
     {
-        Yii::$app->user->logout();
-
-        return $this->goHome();
+        return!key_exists($searchType, $array);
     }
 
-    /**
-     * Displays contact page.
-     *
-     * @return Response|string
-     */
-    public function actionContact()
-    {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-            Yii::$app->session->setFlash('contactFormSubmitted');
-
-            return $this->refresh();
-        }
-        return $this->render('contact', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
-     * Displays about page.
-     *
-     * @return string
-     */
-    public function actionAbout()
-    {
-        return $this->render('about');
-    }
 }
