@@ -1,30 +1,43 @@
 <?php
 
-use app\Enums\TypeEnum;
+use app\Enums\OrderStatusEnum;
+use app\Enums\SearchTypeEnum;
 use app\models\Orders;
-use app\models\User;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\LinkPager;
 
 ?>
 <ul class="nav nav-tabs p-b">
-    <li class="active"><a href="#">All orders</a></li>
-    <li><a href="#">Pending</a></li>
-    <li><a href="#">In progress</a></li>
-    <li><a href="#">Completed</a></li>
-    <li><a href="#">Canceled</a></li>
-    <li><a href="#">Error</a></li>
+    <li class="active"><a href="/">All orders</a></li>
+
+    <?php
+    /** @var Orders $response */
+    foreach ($statusesList as $response): ?>
+        <?php
+            $get = Yii::$app->request->get();
+            unset($get['page']);
+            unset($get['per-page']);
+            unset($get['status']);
+
+            $statusId = $response->status . $queryParams();
+            $statusName = OrderStatusEnum::texts[$response->status];
+            $statusName = "{$statusName} ({$response->status_count})";
+        ?>
+        <li><a href="?status=<?= $statusId ?>"><?= $statusName ?></a></li>
+    <?php endforeach; ?>
     <li class="pull-right custom-search">
-        <form class="form-inline" action="<?php echo Url::toRoute('/') ?>" method="get">
+        <form class="form-inline" action="<?php echo Url::toRoute('/' . $queryParams(true)) ?>" method="get">
             <div class="input-group">
-                <input type="text" name="search" class="form-control" value="<?= Html::encode($search) ?>" placeholder="Search orders">
+                <input type="text" name="search" class="form-control" value="<?= $searchType !== SearchTypeEnum::STATUS_TYPE ? $search : '' ?>" placeholder="Search orders">
                 <span class="input-group-btn search-select-wrap">
 
             <select class="form-control search-select" name="searchType">
-              <option <?= Html::encode(($searchType == 1 ? 'selected': '')) ?> value="1">Order ID</option>
-              <option <?= Html::encode(($searchType == 2 ? 'selected': '')) ?> value="2">Link</option>
-              <option <?= Html::encode(($searchType == 3 ? 'selected': '')) ?> value="3">Username</option>
+                <?php
+                /** @var Orders $response */
+                foreach ($searchTypes as $type): ?>
+                    <option <?= Html::encode(($searchType == $type['id'] ? 'selected': '')) ?> value="<?= $type['id'] ?>"><?= $type['name'] ?></option>
+                <?php endforeach; ?>
             </select>
             <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
             </span>
@@ -51,12 +64,6 @@ use yii\widgets\LinkPager;
                     <?php /** @var Orders $order */
                     foreach ([] as $service): ?>
                         <li><a href=""><span class="label-id">214</span> Real Views</a></li>
-<!--                        <li><a href=""><span class="label-id">215</span> Page Likes</a></li>-->
-<!--                        <li><a href=""><span class="label-id">10</span> Page Likes</a></li>-->
-<!--                        <li><a href=""><span class="label-id">217</span> Page Likes</a></li>-->
-<!--                        <li><a href=""><span class="label-id">221</span> Followers</a></li>-->
-<!--                        <li><a href=""><span class="label-id">224</span> Groups Join</a></li>-->
-<!--                        <li><a href=""><span class="label-id">230</span> Website Likes</a></li>-->
                     <?php endforeach; ?>
                 </ul>
             </div>
@@ -91,7 +98,7 @@ use yii\widgets\LinkPager;
             ?>
             <tr>
                 <td><?= Html::encode($order->id) ?></td>
-                <td><?= Html::encode($order->users->getName($searchType === TypeEnum::USERNAME_TYPE, $search)) ?></td>
+                <td><?= Html::encode($order->users->getName($searchType === SearchTypeEnum::USERNAME_TYPE, $search)) ?></td>
                 <td class="link"><?= Html::encode($order->link) ?></td>
                 <td><?= Html::encode($order->quantity) ?></td>
                 <td class="service">
@@ -119,20 +126,6 @@ use yii\widgets\LinkPager;
                     'pagination' => $pagination,
                 ]);
             ?>
-<!--            <ul class="pagination">-->
-<!--                <li class="disabled"><a href="" aria-label="Previous">&laquo;</a></li>-->
-<!--                <li class="active"><a href="">1</a></li>-->
-<!--                <li><a href="">2</a></li>-->
-<!--                <li><a href="">3</a></li>-->
-<!--                <li><a href="">4</a></li>-->
-<!--                <li><a href="">5</a></li>-->
-<!--                <li><a href="">6</a></li>-->
-<!--                <li><a href="">7</a></li>-->
-<!--                <li><a href="">8</a></li>-->
-<!--                <li><a href="">9</a></li>-->
-<!--                <li><a href="">10</a></li>-->
-<!--                <li><a href="" aria-label="Next">&raquo;</a></li>-->
-<!--            </ul>-->
         </nav>
 
     </div>

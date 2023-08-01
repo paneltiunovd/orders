@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-
+use app\Enums\OrderStatusEnum;
 use app\models\DTO\DateDTO;
 use app\models\DTO\ServiceFrontDTO;
 use Exception;
@@ -20,22 +20,21 @@ use yii\db\ActiveRecord;
  */
 class Orders extends ActiveRecord
 {
+    /**
+     * @var mixed|null
+     */
+    public $status_count;
+
+    /**
+     * @throws Exception
+     */
     public function getStatusToString(): string {
-        switch ($this->status) {
-            case "0":
-                return 'Pending';
-            case "1":
-                return 'In progress';
-            case "2":
-                return 'Completed';
-            case "3":
-                return 'Canceled';
-            case "4":
-                return 'Failed';
-            default:
-                return 'not found';
+        if(OrderStatusEnum::byValue($this->status) === null) {
+            return OrderStatusEnum::texts[OrderStatusEnum::NF];
         }
+        return OrderStatusEnum::texts[$this->status];
     }
+
     public function getModeToString(): string {
         switch ($this->mode) {
             case "0":
