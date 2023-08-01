@@ -2,87 +2,84 @@
 
 namespace app\controllers;
 
+use app\Enums\TypeEnum;
 use app\models\Orders;
+use Yii;
 use yii\data\Pagination;
-use yii\helpers\Url;
+use yii\db\ActiveQuery;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 
 class SiteController extends Controller
 {
 
-    const ID_TYPE = 1;
-    const LINK_TYPE = 2;
-    const USERNAME_TYPE = 3;
-
-    const EQ_OPERATOR = '=';
-    const LIKE_OPERATOR = 'like';
-
-    const AVAILABLE_TYPES_FIELDS_AND_OPERATOR = [
-        self::ID_TYPE => ['id', self::EQ_OPERATOR],
-        self::LINK_TYPE => ['link', self::LIKE_OPERATOR],
-        self::USERNAME_TYPE => ['user_name', 'like'],
-    ];
-
-
     /**
-     * Displays homepage.
-     *
-     * @return string
      * @throws NotFoundHttpException
      */
     public function actionIndex(
         string $search = null,
-        int $searchType = null,
-        int $mode = null
+        int $searchType = null
     ): string
     {
-        $query = Orders::find();
+        $query = Orders::find()->orderBy([
+            'id' => SORT_DESC,
+        ]);
         if($searchType !== null) {
-            if($this->checkConstEnum($searchType, self::AVAILABLE_TYPES_FIELDS_AND_OPERATOR)) {
+            if(!key_exists($searchType, TypeEnum::AVAILABLE_TYPES_FIELDS_AND_OPERATOR)) {
                 throw new NotFoundHttpException();
             }
+
             if($search !== null) {
-                $arr = self::AVAILABLE_TYPES_FIELDS_AND_OPERATOR[$searchType];
+                $searchUse = strtoupper($search);
+                $arr = TypeEnum::AVAILABLE_TYPES_FIELDS_AND_OPERATOR[$searchType];
                 $field = $arr[0];
                 $operator = $arr[1];
-                $query->where("{$field} {$operator} :field", ['field' => $operator === self::LIKE_OPERATOR ? "%{$search}%" : $search]);
+                $condition = "{$field} {$operator} :field";
+                $searchContent = ['field' => $operator === TypeEnum::LIKE_OPERATOR ? "%{$searchUse}%" : $searchUse];
+                if($searchType === TypeEnum::USERNAME_TYPE) {
+                    $query->with(['users' => function (ActiveQuery $query) use ($searchUse, $operator) {
+                        $query->where("upper(first_name) like binary :first", [
+                            'first' => "%{$searchUse}%"
+                        ]);
+                        $query->orWhere("upper(last_name) like binary :last", [
+                            'last' => "%{$searchUse}%"
+                        ]);
+                    }]);
+                } else {
+                    $query->where($condition, $searchContent);
+                }
             }
         }
 
-        if($mode !== null) {
-            if($this->checkConstEnum($mode, [1, 2])) {
-                throw new NotFoundHttpException();
-            }
-            $query->where('mode', $mode);
-        }
-
+        $request = Yii::$app->request;
+        $get = $request->get();
+        unset($get['page']);
+        unset($get['per-page']);
         $pageSize = 100;
+
+        $countQuery = clone $query;
+        $total = $countQuery->count();
 
         $pagination = new Pagination([
             'defaultPageSize' => $pageSize,
-            'totalCount' => $query->count(),
+            'totalCount' => $total,
+            'route' => '/' . count($get) > 0 ? "?" . http_build_query($get) : '',
         ]);
 
-        $orders = $query->orderBy('id')
+        $orders = array_filter($query
             ->offset($pagination->offset)
             ->limit($pagination->limit)
-            ->all();
+            ->all(), function (Orders $order) {
+            return $order->users !== null;
+        });
 
 
-        $total = $pagination->totalCount;
-
-        $totalPages = (int) (($total + $pageSize - 1) / $pageSize);
+        $totalPages = (int) ceil($total / $pageSize);
 
         return $this->render('index', [
-            'orders' => $orders,
-            'pagination' => $pagination,
-        ] + compact('search', 'searchType', 'pageSize', 'totalPages'));
-    }
-
-    private function checkConstEnum($searchType, array $array): bool
-    {
-        return!key_exists($searchType, $array);
+                'orders' => $orders,
+                'pagination' => $pagination,
+            ] + compact('search', 'searchType', 'totalPages', 'total'));
     }
 
 }

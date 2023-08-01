@@ -1,5 +1,8 @@
 <?php
 
+use app\Enums\TypeEnum;
+use app\models\Orders;
+use app\models\User;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\LinkPager;
@@ -44,13 +47,17 @@ use yii\widgets\LinkPager;
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
                     <li class="active"><a href="">All (894931)</a></li>
-                    <li><a href=""><span class="label-id">214</span> Real Views</a></li>
-                    <li><a href=""><span class="label-id">215</span> Page Likes</a></li>
-                    <li><a href=""><span class="label-id">10</span> Page Likes</a></li>
-                    <li><a href=""><span class="label-id">217</span> Page Likes</a></li>
-                    <li><a href=""><span class="label-id">221</span> Followers</a></li>
-                    <li><a href=""><span class="label-id">224</span> Groups Join</a></li>
-                    <li><a href=""><span class="label-id">230</span> Website Likes</a></li>
+
+                    <?php /** @var Orders $order */
+                    foreach ([] as $service): ?>
+                        <li><a href=""><span class="label-id">214</span> Real Views</a></li>
+<!--                        <li><a href=""><span class="label-id">215</span> Page Likes</a></li>-->
+<!--                        <li><a href=""><span class="label-id">10</span> Page Likes</a></li>-->
+<!--                        <li><a href=""><span class="label-id">217</span> Page Likes</a></li>-->
+<!--                        <li><a href=""><span class="label-id">221</span> Followers</a></li>-->
+<!--                        <li><a href=""><span class="label-id">224</span> Groups Join</a></li>-->
+<!--                        <li><a href=""><span class="label-id">230</span> Website Likes</a></li>-->
+                    <?php endforeach; ?>
                 </ul>
             </div>
         </th>
@@ -72,27 +79,36 @@ use yii\widgets\LinkPager;
     </tr>
     </thead>
     <tbody>
-    <?php foreach ($orders as $order): ?>
-        <tr>
-            <td><?= Html::encode($order->id) ?></td>
-            <td><?= Html::encode($order->users[0]['first_name']) ?></td>
-            <td class="link"><?= Html::encode($order->link) ?></td>
-            <td><?= Html::encode($order->quantity) ?></td>
-            <td class="service">
-                <span class="label-id">213</span>Likes
-            </td>
-            <td><?= Html::encode($order->getStatusToString()) ?></td>
-            <td><?= Html::encode($order->getModeToString()) ?></td>
-            <td>
-                <span class="nowrap">
-                    <?= Html::encode($order->getDateObject()->getFirstDate()) ?>
-                </span>
-                <span class="nowrap">
-                    <?= Html::encode($order->getDateObject()->getSecondDate()) ?>
-                </span>
-            </td>
-        </tr>
-    <?php endforeach; ?>
+    <?php
+        /** @var Orders $order */
+        foreach ($orders as $order): ?>
+            <?php
+            try {
+                $serviceDTO = $order->serviceFrontDTO();
+            } catch (Exception $e) {
+                $serviceDTO = null;
+            }
+            ?>
+            <tr>
+                <td><?= Html::encode($order->id) ?></td>
+                <td><?= Html::encode($order->users->getName($searchType === TypeEnum::USERNAME_TYPE, $search)) ?></td>
+                <td class="link"><?= Html::encode($order->link) ?></td>
+                <td><?= Html::encode($order->quantity) ?></td>
+                <td class="service">
+                    <span class="label-id"><?= Html::encode($serviceDTO->getCountOrders()) ?></span> <?= Html::encode($serviceDTO->getServiceName()) ?>
+                </td>
+                <td><?= Html::encode($order->getStatusToString()) ?></td>
+                <td><?= Html::encode($order->getModeToString()) ?></td>
+                <td>
+                    <span class="nowrap">
+                        <?= Html::encode($order->getDateObject()->getFirstDate()) ?>
+                    </span>
+                    <span class="nowrap">
+                        <?= Html::encode($order->getDateObject()->getSecondDate()) ?>
+                    </span>
+                </td>
+            </tr>
+        <?php endforeach; ?>
     </tbody>
 </table>
 <div class="row">
@@ -122,7 +138,7 @@ use yii\widgets\LinkPager;
     </div>
     <div class="col-sm-4 pagination-counters">
 
-        <?php echo $pagination->page + 1 ?> to <?php echo $pageSize ?> of <?php echo $totalPages?>
+        <?php echo $pagination->page + 1 ?> to <?php echo $totalPages ?> of <?php echo $total?>
     </div>
 
 </div>

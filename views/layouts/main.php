@@ -4,6 +4,7 @@
 /** @var string $content */
 
 use app\assets\AppAsset;
+use yii\helpers\Url;
 
 AppAsset::register($this);
 
@@ -51,7 +52,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         </div>
         <div class="collapse navbar-collapse" id="bs-navbar-collapse">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Orders</a></li>
+                <li class="active"><a href="<?= Url::toRoute('/') ?>">Orders</a></li>
             </ul>
         </div>
     </div>

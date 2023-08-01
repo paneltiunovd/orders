@@ -4,12 +4,19 @@ namespace app\models;
 
 
 use app\models\DTO\DateDTO;
+use app\models\DTO\ServiceFrontDTO;
+use Exception;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
 /**
  * @property integer $created_at
  * @property integer $status
  * @property integer $mode
+ * @property integer|null $id
+ * @property Users|null $users
+ * @property integer|null $quantity
+ * @property string|null $link
  */
 class Orders extends ActiveRecord
 {
@@ -45,9 +52,19 @@ class Orders extends ActiveRecord
     }
 
 
-    public function getUsers()
+    public function getUsers(): ActiveQuery
     {
-        return $this->hasMany(Users::class, ['id' => 'user_id']);
+        return $this->hasOne(Users::class, ['id' => 'user_id']);
     }
+
+    /**
+     * @throws Exception
+     */
+    public function serviceFrontDTO(): ServiceFrontDTO
+    {
+        return new ServiceFrontDTO($this->hasOne(Services::class, ['id' => 'service_id'])->one());
+    }
+
+
 
 }
