@@ -1,34 +1,38 @@
 <?php
 
 use app\controllers\SiteController;
-use app\Enums\OrderModeEnum;
-use app\Enums\OrderStatusEnum;
-use app\Enums\SearchTypeEnum;
 use app\models\DTO\ServiceFrontDTO;
+use app\models\Enums\OrderModeEnum;
+use app\models\Enums\OrderStatusEnum;
+use app\models\Enums\SearchTypeEnum;
 use app\models\Orders;
 use yii\bootstrap5\LinkPager;
 use yii\helpers\Html;
 
 ?>
 <ul class="nav nav-tabs p-b">
-    <li class="active"><a href="/">All orders</a></li>
+    <li class="active"><a href="<?= SiteController::urlWithParams($get, 'status', -1) ?>">All orders</a></li>
+    <style>
+        .disabledBtn {
+            color: currentColor;
+            cursor: not-allowed;
+            opacity: 0.5;
+            text-decoration: none;
+        }
+    </style>
     <?php
-    /** @var Orders $response */
-    foreach ($statusesList as $response): ?>
+    /** @var array $status */
+    foreach ($statusesList as $status): ?>
         <?php
-            $get = Yii::$app->request->get();
-
-            $statusId = $response->status ;
-            $statusName = OrderStatusEnum::texts[$response->status];
-            $statusName = "{$statusName} ({$response->status_count})";
+            $statusId = $status['status'] ;
+            $statusName = OrderStatusEnum::texts[$status['status']];
+            $statusName = "{$statusName} ({$status['status_count']})";
         ?>
-        <li><a href="?status=<?= $statusId .SiteController::arrayToGet($get) ?>"><?= $statusName ?></a></li>
+        <li><a <?= $status['disabled'] ? 'class="disabledBtn"' : 'href="?status=' . $statusId . SiteController::arrayToGet($get) . '"' ?>><?= $statusName ?></a></li>
     <?php endforeach; ?>
     <li class="pull-right custom-search">
         <form class="form-inline" action="/" method="get">
-
             <?php
-            /** @var Orders $response */
             foreach ($get as $key => $value):
                 if(!($key === 'search' || $key === 'searchType')) {?>
                     <input type="hidden" name="<?= $key ?>" value="<?= $value ?>">
@@ -40,7 +44,6 @@ use yii\helpers\Html;
 
             <select class="form-control search-select" name="searchType">
                 <?php
-                /** @var Orders $response */
                 foreach ($searchTypes as $type): ?>
                     <option <?= Html::encode(($searchType == $type['id'] ? 'selected': '')) ?> value="<?= $type['id'] ?>"><?= $type['name'] ?></option>
                 <?php endforeach; ?>

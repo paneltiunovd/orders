@@ -2,11 +2,9 @@
 
 namespace app\models;
 
-use app\Enums\OrderModeEnum;
-use app\Enums\OrderStatusEnum;
 use app\models\DTO\DateDTO;
-use app\models\DTO\ServiceFrontDTO;
-use Exception;
+use app\models\Enums\OrderModeEnum;
+use app\models\Enums\OrderStatusEnum;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 

@@ -42,6 +42,12 @@
             "enabled": false
         }
     },
+     "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
     "scripts": {
         "post-install-cmd": [
             "yii\\composer\\Installer::postInstall"

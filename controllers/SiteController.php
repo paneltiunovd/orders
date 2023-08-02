@@ -2,11 +2,10 @@
 
 namespace app\controllers;
 
-use app\Enums\OperatorEnum;
-use app\Enums\OrderModeEnum;
-use app\Enums\OrderStatusEnum;
-use app\Enums\SearchTypeEnum;
 use app\models\DTO\ServiceFrontDTO;
+use app\models\Enums\OperatorEnum;
+use app\models\Enums\OrderStatusEnum;
+use app\models\Enums\SearchTypeEnum;
 use app\models\Orders;
 use app\models\Services;
 use Yii;
@@ -17,7 +16,6 @@ use yii\web\Controller;
 
 class SiteController extends Controller
 {
-
     public static function urlWithParams(array $array, string $key, int $id): string {
         $isWhat = $id === -1;
         if(array_key_exists($key, $array) || $isWhat) {
@@ -54,7 +52,6 @@ class SiteController extends Controller
             }
         }
     }
-
     public function actionIndex(
         string $search = null,
         int $searchType = null,
@@ -90,7 +87,7 @@ class SiteController extends Controller
         $pagination = new Pagination([
             'totalCount' => $countQuery->count(),
             'pageSize' => $pageSize,
-            'route' => '/' . self::arrayToGet($get, true)
+            'route' => '/'
         ]);
 
         $pagination->pageSizeParam = false;
@@ -102,13 +99,22 @@ class SiteController extends Controller
             ->limit($pagination->limit)
             ->all();
 
-        $existedStatuses = $statusesOrderQuery->addSelect(['COUNT(orders.id) as status_count', 'status', 'mode', 'service_id'])
+        $existedStatuses = array_map(function (Orders $order) {
+            return ['status' => $order->status, 'status_count' => $order->status_count, 'disabled' => $order->status_count === 0];
+        }, $statusesOrderQuery->addSelect(['COUNT(orders.id) as status_count', 'status', 'mode', 'service_id'])
             ->groupBy(['status'])
             ->having('COUNT(*) > 1')
-            ->all();
-
-        $notExistedAndZero = [];
+            ->all());
+        $arr = array_flip(array_map(function (array $arrStatus) {
+            return $arrStatus['status'];
+        }, $existedStatuses));
+        $notExistedAndZero = array_map(function (int $notFoundStatus) {
+            return ['status' => $notFoundStatus, 'status_count' => 0, 'disabled' => true];
+        }, array_values(array_filter(OrderStatusEnum::getValues(), function (int $status) use ($arr) {
+            return !(array_key_exists($status, $arr) || $status === -1);
+        })));
         $statusesList = array_merge($existedStatuses, $notExistedAndZero);
+        sort($statusesList);
 
         $totalPages = (int) ceil($query->count() / $pageSize);
 
