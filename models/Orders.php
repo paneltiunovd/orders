@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\Enums\OrderModeEnum;
 use app\Enums\OrderStatusEnum;
 use app\models\DTO\DateDTO;
 use app\models\DTO\ServiceFrontDTO;
@@ -17,6 +18,7 @@ use yii\db\ActiveRecord;
  * @property Users|null $users
  * @property integer|null $quantity
  * @property string|null $link
+ * @property Services $service
  */
 class Orders extends ActiveRecord
 {
@@ -25,25 +27,12 @@ class Orders extends ActiveRecord
      */
     public $status_count;
 
-    /**
-     * @throws Exception
-     */
     public function getStatusToString(): string {
-        if(OrderStatusEnum::byValue($this->status) === null) {
-            return OrderStatusEnum::texts[OrderStatusEnum::NF];
-        }
         return OrderStatusEnum::texts[$this->status];
     }
 
     public function getModeToString(): string {
-        switch ($this->mode) {
-            case "0":
-                return 'Manual';
-            case "1":
-                return 'Auto';
-            default:
-                return 'not found';
-        }
+        return OrderModeEnum::texts[$this->mode];
     }
 
     public function getDateObject(): DateDTO {
@@ -56,12 +45,9 @@ class Orders extends ActiveRecord
         return $this->hasOne(Users::class, ['id' => 'user_id']);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function serviceFrontDTO(): ServiceFrontDTO
+    public function getService(): ActiveQuery
     {
-        return new ServiceFrontDTO($this->hasOne(Services::class, ['id' => 'service_id'])->one());
+        return $this->hasOne(Services::class, ['id' => 'service_id']);
     }
 
 

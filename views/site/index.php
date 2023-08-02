@@ -1,33 +1,39 @@
 <?php
 
+use app\controllers\SiteController;
+use app\Enums\OrderModeEnum;
 use app\Enums\OrderStatusEnum;
 use app\Enums\SearchTypeEnum;
+use app\models\DTO\ServiceFrontDTO;
 use app\models\Orders;
+use yii\bootstrap5\LinkPager;
 use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\widgets\LinkPager;
 
 ?>
 <ul class="nav nav-tabs p-b">
     <li class="active"><a href="/">All orders</a></li>
-
     <?php
     /** @var Orders $response */
     foreach ($statusesList as $response): ?>
         <?php
             $get = Yii::$app->request->get();
-            unset($get['page']);
-            unset($get['per-page']);
-            unset($get['status']);
 
-            $statusId = $response->status . $queryParams();
+            $statusId = $response->status ;
             $statusName = OrderStatusEnum::texts[$response->status];
             $statusName = "{$statusName} ({$response->status_count})";
         ?>
-        <li><a href="?status=<?= $statusId ?>"><?= $statusName ?></a></li>
+        <li><a href="?status=<?= $statusId .SiteController::arrayToGet($get) ?>"><?= $statusName ?></a></li>
     <?php endforeach; ?>
     <li class="pull-right custom-search">
-        <form class="form-inline" action="<?php echo Url::toRoute('/' . $queryParams(true)) ?>" method="get">
+        <form class="form-inline" action="/" method="get">
+
+            <?php
+            /** @var Orders $response */
+            foreach ($get as $key => $value):
+                if(!($key === 'search' || $key === 'searchType')) {?>
+                    <input type="hidden" name="<?= $key ?>" value="<?= $value ?>">
+                <?php }?>
+            <?php endforeach; ?>
             <div class="input-group">
                 <input type="text" name="search" class="form-control" value="<?= $searchType !== SearchTypeEnum::STATUS_TYPE ? $search : '' ?>" placeholder="Search orders">
                 <span class="input-group-btn search-select-wrap">
@@ -59,11 +65,11 @@ use yii\widgets\LinkPager;
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                    <li class="active"><a href="">All (894931)</a></li>
-
+                    <li class="active"><a href="<?= SiteController::urlWithParams($get, 'service', -1) ?>">All (<?= $total ?>)</a></li>
                     <?php /** @var Orders $order */
-                    foreach ([] as $service): ?>
-                        <li><a href=""><span class="label-id">214</span> Real Views</a></li>
+                    /** @var ServiceFrontDTO $serviceDTO */
+                    foreach ($serviceList as $key => $serviceDTO): ?>
+                        <li><a href="<?= SiteController::urlWithParams($get, 'service', $serviceDTO->getServiceId()) ?>"><span class="label-id"><?= $serviceDTO->getCountOrders() ?></span> <?= $serviceDTO->getServiceName() ?></a></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
@@ -76,9 +82,11 @@ use yii\widgets\LinkPager;
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                    <li class="active"><a href="">All</a></li>
-                    <li><a href="">Manual</a></li>
-                    <li><a href="">Auto</a></li>
+                    <?php /** @var Orders $order */
+                    /** @var ServiceFrontDTO $serviceDTO */
+                    foreach (OrderModeEnum::getValues() as $value): ?>
+                        <li><a href="<?= SiteController::urlWithParams($get, 'mode', (int) $value) ?>"> <?= OrderModeEnum::texts[$value] ?></a></li>
+                    <?php endforeach; ?>
                 </ul>
             </div>
         </th>
@@ -88,10 +96,9 @@ use yii\widgets\LinkPager;
     <tbody>
     <?php
         /** @var Orders $order */
-        foreach ($orders as $order): ?>
-            <?php
+        foreach ($orders as $order):
             try {
-                $serviceDTO = $order->serviceFrontDTO();
+                $serviceDTO = $serviceList[$order->service_id];
             } catch (Exception $e) {
                 $serviceDTO = null;
             }
@@ -121,17 +128,14 @@ use yii\widgets\LinkPager;
 <div class="row">
     <div class="col-sm-8">
         <nav>
-            <?php
-                echo LinkPager::widget([
-                    'pagination' => $pagination,
-                ]);
-            ?>
+            <?= LinkPager::widget([
+                'pagination' => $pagination,
+                'registerLinkTags' => true
+            ]) ?>
+
         </nav>
 
     </div>
-    <div class="col-sm-4 pagination-counters">
 
-        <?php echo $pagination->page + 1 ?> to <?php echo $totalPages ?> of <?php echo $total?>
-    </div>
 
 </div>

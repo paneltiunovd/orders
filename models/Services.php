@@ -9,7 +9,7 @@ use yii\db\ActiveRecord;
  */
 class Services extends ActiveRecord
 {
-    public function orders() {
+    public function getOrders() {
         return $this->hasMany(Orders::class, ['service_id' => 'id']);
     }
 }

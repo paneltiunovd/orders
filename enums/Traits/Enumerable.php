@@ -20,7 +20,9 @@ trait Enumerable
 
     public static function getValues(): array
     {
-        return array_values(self::getConstants());
+        return array_filter(array_values(self::getConstants()), function ($constValue) {
+            return is_int($constValue);
+        });
     }
 
     public static function getConstants(): array

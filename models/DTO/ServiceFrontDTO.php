@@ -9,19 +9,31 @@ use yii\db\ActiveRecord;
 class ServiceFrontDTO
 {
 
-    public Services $service;
+    private Services $service;
     private int $countOrders;
     private string $serviceName;
+    /**
+     * @var mixed|null
+     */
+    private $serviceId;
 
     /**
      * @param Services $service
-     * @throws Exception
      */
     public function __construct(ActiveRecord $service)
     {
         $this->service = $service;
-        $this->countOrders = $service->orders()->count();
+        $this->countOrders = $service->getOrders()->count();
         $this->serviceName = $service->name;
+        $this->serviceId = $service->id;
+    }
+
+    /**
+     * @return mixed|null
+     */
+    public function getServiceId()
+    {
+        return $this->serviceId;
     }
 
     /**
