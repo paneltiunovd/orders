@@ -8,24 +8,8 @@ class DateDTO
 {
 
     public int $unixDate;
-    private string $firstDate;
-
-    /**
-     * @return string
-     */
-    public function getFirstDate(): string
-    {
-        return $this->firstDate;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSecondDate(): string
-    {
-        return $this->secondDate;
-    }
-    private string $secondDate;
+    public string $firstDate;
+    public string $secondDate;
 
     /**
      * @param int $unixDate

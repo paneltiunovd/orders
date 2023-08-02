@@ -11,7 +11,6 @@ use app\models\Services;
 use Yii;
 use yii\data\Pagination;
 use yii\db\ActiveQuery;
-use yii\helpers\VarDumper;
 use yii\web\Controller;
 
 class SiteController extends Controller
@@ -52,6 +51,7 @@ class SiteController extends Controller
             }
         }
     }
+
     public function actionIndex(
         string $search = null,
         int $searchType = null,
@@ -98,6 +98,13 @@ class SiteController extends Controller
             ->offset($pagination->offset)
             ->limit($pagination->limit)
             ->all();
+        $ordersIds = array_map(function (Orders $order) {
+            return $order->id;
+        }, $orders);
+
+        $orders = array_map(function (Orders $order) use ($search, $searchType) {
+            return $order->getDTO();
+        }, $orders);
 
         $existedStatuses = array_map(function (Orders $order) {
             return ['status' => $order->status, 'status_count' => $order->status_count, 'disabled' => $order->status_count === 0];
@@ -135,6 +142,7 @@ class SiteController extends Controller
 
         return $this->render('index', compact(
             'pagination',
+            'ordersIds',
             'orders',
             'search',
             'searchTypes',

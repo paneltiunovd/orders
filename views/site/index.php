@@ -1,6 +1,7 @@
 <?php
 
 use app\controllers\SiteController;
+use app\models\DTO\OrderDTO;
 use app\models\DTO\ServiceFrontDTO;
 use app\models\Enums\OrderModeEnum;
 use app\models\Enums\OrderStatusEnum;
@@ -8,6 +9,7 @@ use app\models\Enums\SearchTypeEnum;
 use app\models\Orders;
 use yii\bootstrap5\LinkPager;
 use yii\helpers\Html;
+use yii\helpers\Url;
 
 ?>
 <ul class="nav nav-tabs p-b">
@@ -98,34 +100,30 @@ use yii\helpers\Html;
     </thead>
     <tbody>
     <?php
-        /** @var Orders $order */
+        /** @var OrderDTO $order */
         foreach ($orders as $order):
-            try {
-                $serviceDTO = $serviceList[$order->service_id];
-            } catch (Exception $e) {
-                $serviceDTO = null;
-            }
             ?>
             <tr>
                 <td><?= Html::encode($order->id) ?></td>
-                <td><?= Html::encode($order->users->getName($searchType === SearchTypeEnum::USERNAME_TYPE, $search)) ?></td>
+                <td><?= Html::encode($order->username) ?></td>
                 <td class="link"><?= Html::encode($order->link) ?></td>
                 <td><?= Html::encode($order->quantity) ?></td>
                 <td class="service">
-                    <span class="label-id"><?= Html::encode($serviceDTO->getCountOrders()) ?></span> <?= Html::encode($serviceDTO->getServiceName()) ?>
+                    <span class="label-id"><?= Html::encode($order->quantity) ?></span> <?= Html::encode($order->service_name) ?>
                 </td>
-                <td><?= Html::encode($order->getStatusToString()) ?></td>
-                <td><?= Html::encode($order->getModeToString()) ?></td>
+                <td><?= Html::encode($order->human_reed_status) ?></td>
+                <td><?= Html::encode($order->human_reed_mode) ?></td>
                 <td>
                     <span class="nowrap">
-                        <?= Html::encode($order->getDateObject()->getFirstDate()) ?>
+                        <?= Html::encode($order->formatted_date_first) ?>
                     </span>
                     <span class="nowrap">
-                        <?= Html::encode($order->getDateObject()->getSecondDate()) ?>
+                        <?= Html::encode($order->formatted_date_second) ?>
                     </span>
                 </td>
             </tr>
         <?php endforeach; ?>
+        Скачай <a href="<?= Url::toRoute(['/orders/download', 'orderIds' => $ordersIds]) ?>">меня</a>
     </tbody>
 </table>
 <div class="row">

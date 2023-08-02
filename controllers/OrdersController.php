@@ -2,26 +2,43 @@
 
 namespace app\controllers;
 
+use app\models\Orders;
+use League\Csv\Exception;
+use League\Csv\Writer;
 use Yii;
-use yii\filters\AccessControl;
-use yii\helpers\Url;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
-use yii\web\NotFoundHttpException;
+use yii\web\RangeNotSatisfiableHttpException;
 use yii\web\Response;
-use yii\filters\VerbFilter;
-use app\models\LoginForm;
-use app\models\ContactForm;
 
 class OrdersController extends Controller
 {
 
-    /**
-     * @throws NotFoundHttpException
-     */
-    public function actionSearch(): Response
-    {
 
-        return $this->redirect(Url::toRoute('/'));
+    public function actionDownload(array $orderIds = []): Response {
+        $orders = Orders::find()->where(['in', 'id', $orderIds])->all();
+        $records = array_map(function (Orders $order) {
+            return $order->getDTO()->toArray();
+        }, $orders);
+
+        $header = ['id', 'username', 'link', 'Quantity', 'service', 'status', 'mode', 'date'];
+
+        $csv = Writer::createFromString();
+
+        $csv->insertOne($header);
+        $csv->insertAll($records);
+
+        try {
+            return Yii::$app->response->sendContentAsFile($csv->toString(), 'orders.csv', [
+                'mimeType' => 'application/csv',
+                'inline' => false
+            ]);
+        } catch (RangeNotSatisfiableHttpException|Exception $e) {
+            $response = Yii::$app->response;
+            $response->format = Response::FORMAT_JSON;
+            $response->data = ['error' => $e->getMessage()];
+            return $response;
+        }
     }
 
 }
