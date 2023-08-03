@@ -26,7 +26,8 @@ use yii\helpers\Url;
     /** @var array $status */
     foreach ($statusesList as $status): ?>
         <?php
-            $statusId = $status['status'] ;
+
+            $statusId = $status['status'];
             $statusName = OrderStatusEnum::texts[$status['status']];
             $statusName = "{$statusName} ({$status['status_count']})";
         ?>
@@ -59,14 +60,14 @@ use yii\helpers\Url;
 <table class="table order-table">
     <thead>
     <tr>
-        <th>ID</th>
-        <th>User</th>
-        <th>Link</th>
-        <th>Quantity</th>
+        <th><?= Yii::t('app', 'ID') ?></th>
+        <th><?= Yii::t('app', 'User') ?></th>
+        <th><?= Yii::t('app', 'Link') ?></th>
+        <th><?= Yii::t('app', 'Quantity') ?></th>
         <th class="dropdown-th">
             <div class="dropdown">
                 <button class="btn btn-th btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    <?= Yii::t('app', 'Service', [], 'ru-RU') ?>
+                    <?= Yii::t('app', 'Service') ?>
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
@@ -79,7 +80,7 @@ use yii\helpers\Url;
                 </ul>
             </div>
         </th>
-        <th>Status</th>
+        <th><?= Yii::t('app', 'Status') ?></th>
         <th class="dropdown-th">
             <div class="dropdown">
                 <button class="btn btn-th btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -95,7 +96,7 @@ use yii\helpers\Url;
                 </ul>
             </div>
         </th>
-        <th>Created</th>
+        <th><?= Yii::t('app', 'Created') ?></th>
     </tr>
     </thead>
     <tbody>
@@ -123,7 +124,16 @@ use yii\helpers\Url;
                 </td>
             </tr>
         <?php endforeach; ?>
-        <a href="<?= Url::toRoute(['/orders/download', 'ids' => $ordersIds]) ?>">Save result (<?= count($orders) ?>)</a>
+        <form action="<?= Url::toRoute(['/orders/download']) ?>">
+
+            <?php
+            /** @var OrderDTO $order */
+            foreach ($ordersIds as $id):
+                ?>
+                <input name="ids[]" type="hidden" value="<?= $id ?>">
+            <?php endforeach; ?>
+            <button type="submit"><?= Yii::t('app', 'Save result') . '('. count($orders) . ')' ?>)</button>
+        </form>
     </tbody>
 </table>
 <div class="row">

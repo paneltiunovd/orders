@@ -90,7 +90,7 @@ class SearchController extends Controller
         $pagination = new Pagination([
             'totalCount' => $countQuery->count(),
             'pageSize' => $pageSize,
-            'route' => $this->route
+            'route' => str_replace('/index', '', $this->route)
         ]);
 
         $pagination->pageSizeParam = false;

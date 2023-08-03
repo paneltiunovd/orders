@@ -53,7 +53,7 @@ class Orders extends ActiveRecord
         $date = new DateDTO($this->created_at);
         $class = $download ? OrderDTO::class : OrderFrontDTO::class;
         $data = [
-            'service_name' => $this->service_id . '.' . $this->service->name,
+            'service_name' => $this->service->name,
             'id' => $this->id,
             'username' => $this->users->getName() ?? '',
             'quantity' => $this->quantity,
@@ -63,6 +63,7 @@ class Orders extends ActiveRecord
             'formatted_date_first' => $date->firstDate,
             'formatted_date_second' => $date->secondDate,
         ];
+
         if(!$download) {
             $data['service_id'] = $this->service_id;
         }

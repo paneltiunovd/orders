@@ -16,7 +16,9 @@ return [
     'silentExitOnException' => null,
     'sourcePath' => '@yii',
     'messagePath' => '@yii/messages',
-    'languages' => [],
+    'languages' => [
+        'ru-RU'
+    ],
     'translator' => [
         'Yii::t',
         '\\Yii::t',
@@ -33,6 +35,8 @@ return [
         '/runtime',
         '/vendor',
         '/BaseYii.php',
+        '/messages',
+        '/vendor',
     ],
     'only' => [
         '*.php',
