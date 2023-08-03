@@ -1,8 +1,8 @@
 <?php
 
-namespace app\models\Enums;
+namespace app\modules\orders\enums;
 
-use app\models\Enums\Traits\Enumerable;
+use app\modules\orders\enums\traits\Enumerable;
 
 class OrderStatusEnum
 {

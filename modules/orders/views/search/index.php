@@ -1,19 +1,19 @@
 <?php
 
-use app\controllers\SiteController;
-use app\models\DTO\OrderDTO;
-use app\models\DTO\ServiceFrontDTO;
-use app\models\Enums\OrderModeEnum;
-use app\models\Enums\OrderStatusEnum;
-use app\models\Enums\SearchTypeEnum;
-use app\models\Orders;
+use app\modules\orders\controllers\SearchController;
+use app\modules\orders\DTO\OrderDTO;
+use app\modules\orders\DTO\ServiceFrontDTO;
+use app\modules\orders\enums\OrderModeEnum;
+use app\modules\orders\enums\OrderStatusEnum;
+use app\modules\orders\enums\SearchTypeEnum;
+use app\modules\orders\models\Orders;
 use yii\bootstrap5\LinkPager;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
 ?>
 <ul class="nav nav-tabs p-b">
-    <li class="active"><a href="<?= SiteController::urlWithParams($get, 'status', -1) ?>">All orders</a></li>
+    <li class="active"><a href="<?= SearchController::urlWithParams($get, 'status', -1) ?>">All orders</a></li>
     <style>
         .disabledBtn {
             color: currentColor;
@@ -30,10 +30,10 @@ use yii\helpers\Url;
             $statusName = OrderStatusEnum::texts[$status['status']];
             $statusName = "{$statusName} ({$status['status_count']})";
         ?>
-        <li><a <?= $status['disabled'] ? 'class="disabledBtn"' : 'href="?status=' . $statusId . SiteController::arrayToGet($get) . '"' ?>><?= $statusName ?></a></li>
+        <li><a <?= $status['disabled'] ? 'class="disabledBtn"' : 'href="' . SearchController::urlWithParams($get, 'status', $statusId) . '"' ?>><?= $statusName ?></a></li>
     <?php endforeach; ?>
     <li class="pull-right custom-search">
-        <form class="form-inline" action="/" method="get">
+        <form class="form-inline" action="<?= Url::toRoute('/orders/search', $get) ?>" method="get">
             <?php
             foreach ($get as $key => $value):
                 if(!($key === 'search' || $key === 'searchType')) {?>
@@ -66,15 +66,15 @@ use yii\helpers\Url;
         <th class="dropdown-th">
             <div class="dropdown">
                 <button class="btn btn-th btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    Service
+                    <?= Yii::t('app', 'Service', [], 'ru-RU') ?>
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                    <li class="active"><a href="<?= SiteController::urlWithParams($get, 'service', -1) ?>">All (<?= $total ?>)</a></li>
+                    <li class="active"><a href="<?= SearchController::urlWithParams($get, 'service', -1) ?>">All (<?= $total ?>)</a></li>
                     <?php /** @var Orders $order */
                     /** @var ServiceFrontDTO $serviceDTO */
                     foreach ($serviceList as $key => $serviceDTO): ?>
-                        <li><a href="<?= SiteController::urlWithParams($get, 'service', $serviceDTO->getServiceId()) ?>"><span class="label-id"><?= $serviceDTO->getCountOrders() ?></span> <?= $serviceDTO->getServiceName() ?></a></li>
+                        <li><a href="<?= SearchController::urlWithParams($get, 'service', $serviceDTO->getServiceId()) ?>"><span class="label-id"><?= $serviceDTO->getCountOrders() ?></span> <?= $serviceDTO->getServiceName() ?></a></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
@@ -90,7 +90,7 @@ use yii\helpers\Url;
                     <?php /** @var Orders $order */
                     /** @var ServiceFrontDTO $serviceDTO */
                     foreach (OrderModeEnum::getValues() as $value): ?>
-                        <li><a href="<?= SiteController::urlWithParams($get, 'mode', (int) $value) ?>"> <?= OrderModeEnum::texts[$value] ?></a></li>
+                        <li><a href="<?= SearchController::urlWithParams($get, 'mode', (int) $value) ?>"> <?= OrderModeEnum::texts[$value] ?></a></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
@@ -109,7 +109,7 @@ use yii\helpers\Url;
                 <td class="link"><?= Html::encode($order->link) ?></td>
                 <td><?= Html::encode($order->quantity) ?></td>
                 <td class="service">
-                    <span class="label-id"><?= Html::encode($order->quantity) ?></span> <?= Html::encode($order->service_name) ?>
+                    <span class="label-id"><?= Html::encode($order->service_id) ?></span> <?= Html::encode($order->service_name) ?>
                 </td>
                 <td><?= Html::encode($order->human_reed_status) ?></td>
                 <td><?= Html::encode($order->human_reed_mode) ?></td>
@@ -123,7 +123,7 @@ use yii\helpers\Url;
                 </td>
             </tr>
         <?php endforeach; ?>
-        Скачай <a href="<?= Url::toRoute(['/orders/download', 'orderIds' => $ordersIds]) ?>">меня</a>
+        <a href="<?= Url::toRoute(['/orders/download', 'ids' => $ordersIds]) ?>">Save result (<?= count($orders) ?>)</a>
     </tbody>
 </table>
 <div class="row">

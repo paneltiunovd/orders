@@ -52,7 +52,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         </div>
         <div class="collapse navbar-collapse" id="bs-navbar-collapse">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="<?= Url::toRoute('/') ?>">Orders</a></li>
+                <li class="active"><a href="<?= Yii::$app->controller->id ?>">Orders</a></li>
             </ul>
         </div>
     </div>

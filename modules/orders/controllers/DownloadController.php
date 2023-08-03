@@ -1,8 +1,8 @@
 <?php
 
-namespace app\controllers;
+namespace app\modules\orders\controllers;
 
-use app\models\Orders;
+use app\modules\orders\models\Orders;
 use League\Csv\Exception;
 use League\Csv\Writer;
 use Yii;
@@ -11,17 +11,16 @@ use yii\web\Controller;
 use yii\web\RangeNotSatisfiableHttpException;
 use yii\web\Response;
 
-class OrdersController extends Controller
+class DownloadController extends Controller
 {
 
+    public function actionIndex(array $ids = []): Response {
+        $header = ['id', 'username', 'link', 'quantity', 'status', 'mode', 'date', 'time', 'service'];
 
-    public function actionDownload(array $orderIds = []): Response {
-        $orders = Orders::find()->where(['in', 'id', $orderIds])->all();
+        $orders = Orders::find()->where(['in', 'id', $ids])->all();
         $records = array_map(function (Orders $order) {
-            return $order->getDTO()->toArray();
+            return $order->getDTO(true)->toArray();
         }, $orders);
-
-        $header = ['id', 'username', 'link', 'Quantity', 'service', 'status', 'mode', 'date'];
 
         $csv = Writer::createFromString();
 

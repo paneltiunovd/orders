@@ -1,26 +1,29 @@
 <?php
 
-namespace app\controllers;
+namespace app\modules\orders\controllers;
 
-use app\models\DTO\ServiceFrontDTO;
-use app\models\Enums\OperatorEnum;
-use app\models\Enums\OrderStatusEnum;
-use app\models\Enums\SearchTypeEnum;
-use app\models\Orders;
-use app\models\Services;
+use app\modules\orders\DTO\ServiceFrontDTO;
+use app\modules\orders\enums\OperatorEnum;
+use app\modules\orders\enums\OrderStatusEnum;
+use app\modules\orders\enums\SearchTypeEnum;
+use app\modules\orders\models\Orders;
+use app\modules\orders\models\Services;
 use Yii;
 use yii\data\Pagination;
 use yii\db\ActiveQuery;
+use yii\helpers\Url;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
 
-class SiteController extends Controller
+class SearchController extends Controller
 {
+
     public static function urlWithParams(array $array, string $key, int $id): string {
-        $isWhat = $id === -1;
-        if(array_key_exists($key, $array) || $isWhat) {
+        $isClearCode = $id === -1;
+        if(array_key_exists($key, $array) || $isClearCode) {
             unset($array[$key]);
         }
-        return (!$isWhat ? '?' . $key . '=' . $id : '') . self::arrayToGet($array, $isWhat);
+        return (!$isClearCode ? '?' . $key . '=' . $id : '') . self::arrayToGet($array, $isClearCode);
     }
 
     public static function arrayToGet(array $array, bool $isStart = false): string
@@ -40,14 +43,14 @@ class SiteController extends Controller
             $searchContent = [$mField => $operator === OperatorEnum::LIKE_OPERATOR ? "%{$searchUse}%" : $search];
             if($searchType === SearchTypeEnum::USERNAME_TYPE) {
                 $query->joinWith(['users' => function (ActiveQuery $users) use ($searchUse) {
-                     $users
+                    $users
                         ->where("upper(first_name) like binary :first or upper(last_name) like binary :last", [
                             'first' => "%{$searchUse}%",
                             'last' => "%{$searchUse}%",
                         ]);
                 }]);
             } else {
-               $query->andWhere($condition, $searchContent);
+                $query->andWhere($condition, $searchContent);
             }
         }
     }
@@ -87,7 +90,7 @@ class SiteController extends Controller
         $pagination = new Pagination([
             'totalCount' => $countQuery->count(),
             'pageSize' => $pageSize,
-            'route' => '/'
+            'route' => $this->route
         ]);
 
         $pagination->pageSizeParam = false;
@@ -103,7 +106,7 @@ class SiteController extends Controller
         }, $orders);
 
         $orders = array_map(function (Orders $order) use ($search, $searchType) {
-            return $order->getDTO();
+            return $order->getDTO(false);
         }, $orders);
 
         $existedStatuses = array_map(function (Orders $order) {

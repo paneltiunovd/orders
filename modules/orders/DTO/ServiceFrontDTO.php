@@ -1,9 +1,8 @@
 <?php
 
-namespace app\models\DTO;
+namespace app\modules\orders\DTO;
 
-use app\models\Services;
-use Exception;
+use app\modules\orders\models\Services;
 use yii\db\ActiveRecord;
 
 class ServiceFrontDTO

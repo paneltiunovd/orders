@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models\Enums;
+namespace app\modules\orders\enums;
 
 class OperatorEnum
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models\Enums\Traits;
+namespace app\modules\orders\enums\traits;
 
 use ReflectionClass;
 use ReflectionException;

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models\DTO;
+namespace app\modules\orders\DTO;
 
 use Carbon\Carbon;
 
